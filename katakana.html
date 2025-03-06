@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>katakana auswahl</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Grundlegende Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-image: url('https://images.unsplash.com/photo-1649583693539-f36f908da137?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.0.3');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      position: relative;
+      overflow-x: hidden;
+    }
+    /* Container & Auswahl */
+    .selection-container {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .selection {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 5px;
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      min-width: 200px;
+    }
+    label {
+      display: block;
+      margin: 2px;
+      font-size: 1.2em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    input[type="checkbox"] {
+      margin-right: 5px;
+      transform: scale(1.1);
+    }
+    .selection-container h2 {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      transition: transform 0.5s ease-in-out;
+    }
+    /* Button-Container & Basis-Stile */
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px auto;
+    }
+    .btn-base {
+      text-align: center;
+      text-transform: uppercase;
+      transition: 0.5s;
+      color: rgb(253,252,252);
+      border-radius: 10px;
+      display: inline-block;
+      border: 0;
+      font-weight: 700;
+      background-color: transparent;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      background-size: 200%;
+    }
+    .btn-base:hover {
+      background-position: right center;
+      text-decoration: none;
+    }
+    .btn-base:active {
+      transform: scale(0.95);
+    }
+    .btn-base .btn-content {
+      display: inline-block;
+      transition: opacity 0.5s, transform 0.5s;
+      opacity: 1;
+    }
+    .btn-base:hover .btn-content {
+      opacity: 0;
+    }
+    .btn-base::after {
+      content: attr(data-hover);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.5s;
+      white-space: nowrap;
+    }
+    .btn-base:hover::after {
+      opacity: 1;
+    }
+    .btn-select-all {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px;
+      font-size: 14px;
+      background-color: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+    .btn-main-nav {
+      flex: 1;
+      margin: 10px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 800;
+      background-image: linear-gradient(45deg, #080808 0%, #1a1a1a 51%, #080808 100%);
+    }
+    .btn-sidebar {
+      display: block;
+      width: 90%;
+      margin: 5px auto;
+      padding: 11px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      background-image: linear-gradient(45deg, #080808 0%, #181818 51%, #080808 100%);
+    }
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100%;
+      background-color: rgba(0,0,0,0.85);
+      padding: 20px;
+      z-index: 1000;
+      overflow: hidden;
+      transform: translateX(-206px);
+      transition: transform 0.3s ease;
+    }
+    #sidebar.open {
+      transform: translateX(0);
+    }
+    .sidebar-content {
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    #sidebar.open .sidebar-content {
+      opacity: 1;
+    }
+    .sidebar-content p {
+      margin: 5px 0;
+      font-size: 18px;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+    }
+    /* Toggle Button für Sidebar */
+    #toggleSidebar {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      font-size: 24px;
+      color: white;
+    }
+    /* Tabelle-Container & Seiten */
+    .table-container {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      height: 550px;
+      display: flex;
+      align-items: center;
+      min-width: 800px;
+    }
+    .table-page {
+      position: absolute;
+      width: 100%;
+      transition: transform 0.5s ease-in-out;
+      display: block;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .table-page.active {
+      transform: translateX(0) translateY(-50%);
+    }
+    .table-page:not(.active) {
+      transform: translateX(100%) translateY(-50%);
+    }
+    .table-page.prev {
+      transform: translateX(-100%) translateY(-50%);
+    }
+    .table-page.prev-back {
+      transform: translateX(100%) translateY(-50%);
+    }
+    .table-page.active-back {
+      transform: translateX(0) translateY(-50%);
+    }
+    .navigation-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .btn-nav {
+      padding: 8px 16px;
+      font-size: 14px;
+      background: transparent;
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .btn-nav:hover {
+      opacity: 0.8;
+    }
+    .btn-nav .btn-content {
+      display: inline-block;
+      opacity: 1;
+    }
+    /* Seite 2: Scrollbare Fläche – native Scrollbar ausblenden */
+    #page2 {
+      overflow-y: auto;
+      max-height: 550px;
+      padding-right: 0;
+      padding-bottom: 20px;
+      width: 100%;
+    }
+    #page2::-webkit-scrollbar {
+      display: none;
+    }
+    /* Benutzerdefinierter Scrollregler: ganz rechts, vertikal zentriert */
+    .custom-scrollbar {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 80%;
+      width: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      z-index: 100;
+    }
+    .custom-scrollbar .thumb {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 2px;
+      z-index: 101;
+    }
+    /* Tabellen & Überschriften */
+    .table-heading {
+      text-align: center;
+      font-size: 1.2em;
+      margin: 20px 0 10px;
+      font-weight: bold;
+      width: 100%;
+      transition: transform 0.5s ease-in-out;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+      padding: 10px 0;
+    }
+    table {
+      width: 90%;
+      margin: 10px auto;
+      border-collapse: collapse;
+      color: white;
+    }
+    th, td {
+      border: 1px solid white;
+      padding: 5px;
+      text-align: center;
+    }
+    th {
+      background-color: rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- Button "Alle auswählen/abwählen" -->
+  <button class="btn-select-all" onclick="toggleSelection()">Alle auswählen</button>
+  <div class="selection-container">
+    <h2>Wähle die Zeilen aus, die du gerne üben möchtest!</h2>
+    <div class="table-container">
+      <!-- Seite 1: Auswahl der Katakana-Gruppen -->
+      <div class="table-page active" id="page1">
+        <div class="selection">
+          <div class="column">
+            <label><input type="checkbox" value="a"> (ア, イ, ウ, エ, オ)</label>
+            <label><input type="checkbox" value="ka"> (カ, キ, ク, ケ, コ)</label>
+            <label><input type="checkbox" value="sa"> (サ, シ, ス, セ, ソ)</label>
+            <label><input type="checkbox" value="ta"> (タ, チ, ツ, テ, ト)</label>
+            <label><input type="checkbox" value="na"> (ナ, ニ, ヌ, ネ, ノ)</label>
+            <label><input type="checkbox" value="ha"> (ハ, ヒ, フ, ヘ, ホ)</label>
+            <label><input type="checkbox" value="ma"> (マ, ミ, ム, メ, モ)</label>
+            <label><input type="checkbox" value="ya"> (ヤ, ユ, ヨ)</label>
+            <label><input type="checkbox" value="ra"> (ラ, リ, ル, レ, ロ)</label>
+            <label><input type="checkbox" value="wa"> (ワ, ヲ)</label>
+            <label><input type="checkbox" value="n"> (ン)</label>
+          </div>
+          <div class="column">
+            <label><input type="checkbox" value="ga"> (ガ, ギ, グ, ゲ, ゴ)</label>
+            <label><input type="checkbox" value="za"> (ザ, ジ, ズ, ゼ, ゾ)</label>
+            <label><input type="checkbox" value="da"> (ダ, ヂ, ヅ, デ, ド)</label>
+            <label><input type="checkbox" value="ba"> (バ, ビ, ブ, ベ, ボ)</label>
+            <label><input type="checkbox" value="pa"> (パ, ピ, プ, ペ, ポ)</label>
+          </div>
+          <div class="column">
+            <label><input type="checkbox" value="kya"> (キャ, キュ, キョ)</label>
+            <label><input type="checkbox" value="sha"> (シャ, シュ, ショ)</label>
+            <label><input type="checkbox" value="cha"> (チャ, チュ, チョ)</label>
+            <label><input type="checkbox" value="nya"> (ニャ, ニュ, ニョ)</label>
+            <label><input type="checkbox" value="hya"> (ヒャ, ヒュ, ヒョ)</label>
+            <label><input type="checkbox" value="mya"> (ミャ, ミュ, ミョ)</label>
+            <label><input type="checkbox" value="rya"> (リャ, リュ, リョ)</label>
+            <label><input type="checkbox" value="gya"> (ギャ, ギュ, ギョ)</label>
+            <label><input type="checkbox" value="ja"> (ジャ, ジュ, ジョ)</label>
+            <label><input type="checkbox" value="dya"> (ヂャ, ヂュ, ヂョ)</label>
+            <label><input type="checkbox" value="bya"> (ビャ, ビュ, ビョ)</label>
+            <label><input type="checkbox" value="pya"> (ピャ, ピュ, ピョ)</label>
+          </div>
+        </div>
+      </div>
+      <!-- Seite 2: Tabellen (Katakana) -->
+      <div class="table-page" id="page2-wrapper">
+        <div id="page2">
+          <div class="table-heading">Katakana Grundzeichen</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Kategorie</th>
+                <th>Zeichen1</th>
+                <th>Zeichen2</th>
+                <th>Zeichen3</th>
+                <th>Zeichen4</th>
+                <th>Zeichen5</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Vokale</td>
+                <td>ア (a)</td>
+                <td>イ (i)</td>
+                <td>ウ (u)</td>
+                <td>エ (e)</td>
+                <td>オ (o)</td>
+              </tr>
+              <tr>
+                <td>K-Reihe</td>
+                <td>カ (ka)</td>
+                <td>キ (ki)</td>
+                <td>ク (ku)</td>
+                <td>ケ (ke)</td>
+                <td>コ (ko)</td>
+              </tr>
+              <tr>
+                <td>S-Reihe</td>
+                <td>サ (sa)</td>
+                <td>シ (shi)</td>
+                <td>ス (su)</td>
+                <td>セ (se)</td>
+                <td>ソ (so)</td>
+              </tr>
+              <tr>
+                <td>T-Reihe</td>
+                <td>タ (ta)</td>
+                <td>チ (chi)</td>
+                <td>ツ (tsu)</td>
+                <td>テ (te)</td>
+                <td>ト (to)</td>
+              </tr>
+              <tr>
+                <td>N-Reihe</td>
+                <td>ナ (na)</td>
+                <td>ニ (ni)</td>
+                <td>ヌ (nu)</td>
+                <td>ネ (ne)</td>
+                <td>ノ (no)</td>
+              </tr>
+              <tr>
+                <td>H-Reihe</td>
+                <td>ハ (ha)</td>
+                <td>ヒ (hi)</td>
+                <td>フ (fu)</td>
+                <td>ヘ (he)</td>
+                <td>ホ (ho)</td>
+              </tr>
+              <tr>
+                <td>M-Reihe</td>
+                <td>マ (ma)</td>
+                <td>ミ (mi)</td>
+                <td>ム (mu)</td>
+                <td>メ (me)</td>
+                <td>モ (mo)</td>
+              </tr>
+              <tr>
+                <td>Y-Reihe</td>
+                <td>ヤ (ya)</td>
+                <td></td>
+                <td>ユ (yu)</td>
+                <td></td>
+                <td>ヨ (yo)</td>
+              </tr>
+              <tr>
+                <td>R-Reihe</td>
+                <td>ラ (ra)</td>
+                <td>リ (ri)</td>
+                <td>ル (ru)</td>
+                <td>レ (re)</td>
+                <td>ロ (ro)</td>
+              </tr>
+              <tr>
+                <td>W-Reihe</td>
+                <td>ワ (wa)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>ヲ (wo)</td>
+              </tr>
+              <tr>
+                <td>N-Laut</td>
+                <td>ン (n)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-heading">Katakana Mit Dakuten</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Kategorie</th>
+                <th>Zeichen1</th>
+                <th>Zeichen2</th>
+                <th>Zeichen3</th>
+                <th>Zeichen4</th>
+                <th>Zeichen5</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ガ-Reihe</td>
+                <td>ガ (ga)</td>
+                <td>ギ (gi)</td>
+                <td>グ (gu)</td>
+                <td>ゲ (ge)</td>
+                <td>ゴ (go)</td>
+              </tr>
+              <tr>
+                <td>ザ-Reihe</td>
+                <td>ザ (za)</td>
+                <td>ジ (ji)</td>
+                <td>ズ (zu)</td>
+                <td>ゼ (ze)</td>
+                <td>ゾ (zo)</td>
+              </tr>
+              <tr>
+                <td>ダ-Reihe</td>
+                <td>ダ (da)</td>
+                <td>ヂ (ji)</td>
+                <td>ヅ (zu)</td>
+                <td>デ (de)</td>
+                <td>ド (do)</td>
+              </tr>
+              <tr>
+                <td>バ-Reihe</td>
+                <td>バ (ba)</td>
+                <td>ビ (bi)</td>
+                <td>ブ (bu)</td>
+                <td>ベ (be)</td>
+                <td>ボ (bo)</td>
+              </tr>
+              <tr>
+                <td>パ-Reihe</td>
+                <td>パ (pa)</td>
+                <td>ピ (pi)</td>
+                <td>プ (pu)</td>
+                <td>ペ (pe)</td>
+                <td>ポ (po)</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-heading">Katakana Kombinationen</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Kategorie</th>
+                <th>Zeichen1</th>
+                <th>Zeichen3</th>
+                <th>Zeichen5</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Kombinationen-K</td>
+                <td>キャ (kya)</td>
+                <td>キュ (kyu)</td>
+                <td>キョ (kyo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-S</td>
+                <td>シャ (sha)</td>
+                <td>シュ (shu)</td>
+                <td>ショ (sho)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-T</td>
+                <td>チャ (cha)</td>
+                <td>チュ (chu)</td>
+                <td>チョ (cho)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-N</td>
+                <td>ニャ (nya)</td>
+                <td>ニュ (nyu)</td>
+                <td>ニョ (nyo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-H</td>
+                <td>ヒャ (hya)</td>
+                <td>ヒュ (hyu)</td>
+                <td>ヒョ (hyo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-M</td>
+                <td>ミャ (mya)</td>
+                <td>ミュ (myu)</td>
+                <td>ミョ (myo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-R</td>
+                <td>リャ (rya)</td>
+                <td>リュ (ryu)</td>
+                <td>リョ (ryo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-G</td>
+                <td>ギャ (gya)</td>
+                <td>ギュ (gyu)</td>
+                <td>ギョ (gyo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-Z</td>
+                <td>ジャ (ja)</td>
+                <td>ジュ (ju)</td>
+                <td>ジョ (jo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-D</td>
+                <td>ヂャ (ja)</td>
+                <td>ヂュ (ju)</td>
+                <td>ヂョ (jo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-B</td>
+                <td>ビャ (bya)</td>
+                <td>ビュ (byu)</td>
+                <td>ビョ (byo)</td>
+              </tr>
+              <tr>
+                <td>Kombinationen-P</td>
+                <td>ピャ (pya)</td>
+                <td>ピュ (pyu)</td>
+                <td>ピョ (pyo)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Benutzerdefinierter Scrollregler (rechts, vertikal zentriert) -->
+        <div class="custom-scrollbar">
+          <div class="thumb" id="customThumb"></div>
+        </div>
+      </div>
+    </div>
+    <div class="navigation-buttons">
+      <button class="btn-nav" onclick="changePage()">
+        <span class="btn-content">Weiter</span>
+      </button>
+    </div>
+  </div>
+  <div class="button-container">
+    <button class="btn-base btn-main-nav" data-hover="メインメニューに戻る" onclick="window.location.href='willkommen.html'">
+      <span class="btn-content">Zurück zum Hauptmenü</span>
+    </button>
+    <button class="btn-base btn-main-nav" data-hover="クイズを開始" onclick="startQuiz()">
+      <span class="btn-content">Quiz starten</span>
+    </button>
+  </div>
+  <div id="sidebar">
+    <div class="sidebar-content">
+      <p>Hier findest du weitere</p>
+      <p>Übungen:</p>
+      <a href="hiragana.html" class="btn-base btn-sidebar" data-hover="ひらがな" role="button">
+        <span class="btn-content">Katakana</span>
+      </a>
+      <a href="firstgradekanji.html" class="btn-base btn-sidebar" data-hover="小学一年生の漢字" role="button">
+        <span class="btn-content">1st grade K</span>
+      </a>
+    </div>
+    <button id="toggleSidebar"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+  <script>
+    function startQuiz() {
+      const selectedLines = [];
+      document.querySelectorAll('input[type=checkbox]:checked').forEach(cb => selectedLines.push(cb.value));
+      if (selectedLines.length === 0) {
+        alert("Ya Manyak, mach deine Augen auf. Wähle mindestens eine Zeile aus...");
+        return;
+      }
+      localStorage.setItem("selectedKatakanaLines", JSON.stringify(selectedLines));
+      window.location.href = "katakanaquiz.html";
+    }
+    function toggleSelection() {
+      const checkboxes = document.querySelectorAll('#page1 input[type=checkbox]');
+      const button = document.querySelector('.btn-select-all');
+      const allChecked = [...checkboxes].every(cb => cb.checked);
+      checkboxes.forEach(cb => cb.checked = !allChecked);
+      button.textContent = allChecked ? "Alle auswählen" : "Alle abwählen";
+    }
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebar');
+    function openSidebar() {
+      sidebar.classList.add('open');
+      toggleBtn.classList.add('active');
+      toggleBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    }
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      toggleBtn.classList.remove('active');
+      toggleBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    }
+    sidebar.addEventListener('mouseenter', openSidebar);
+    sidebar.addEventListener('mouseleave', closeSidebar);
+    let startX;
+    sidebar.addEventListener('touchstart', function(e) {
+      startX = e.touches[0].clientX;
+    });
+    sidebar.addEventListener('touchmove', function(e) {
+      const currentX = e.touches[0].clientX;
+      const diffX = currentX - startX;
+      if(diffX < -50) {
+        closeSidebar();
+      }
+    });
+    function changePage() {
+      const pages = document.querySelectorAll('.table-page');
+      const currentPage = document.querySelector('.table-page.active, .table-page.active-back');
+      const currentIndex = Array.from(pages).indexOf(currentPage);
+      const button = document.querySelector('.btn-nav');
+      const buttonContent = button.querySelector('.btn-content');
+      const selectAllButton = document.querySelector('.btn-select-all');
+      const heading = document.querySelector('.selection-container h2');
+      if (currentIndex === 0) {
+        currentPage.classList.remove('active', 'active-back');
+        currentPage.classList.add('prev');
+        pages[1].classList.remove('prev', 'prev-back');
+        pages[1].classList.add('active');
+        buttonContent.textContent = 'Zurück';
+        button.setAttribute('data-hover', 'Zurück');
+        selectAllButton.style.display = 'none';
+        heading.textContent = 'Hier kannst du die Katakana auswendig lernen!';
+        heading.style.transform = 'translateX(0)';
+      } else {
+        currentPage.classList.remove('active', 'active-back');
+        currentPage.classList.add('prev-back');
+        pages[0].classList.remove('prev', 'prev-back');
+        pages[0].classList.add('active-back');
+        buttonContent.textContent = 'Weiter';
+        button.setAttribute('data-hover', 'Weiter');
+        selectAllButton.style.display = 'block';
+        heading.textContent = 'Wähle die Zeilen aus, die du gerne üben möchtest!';
+        heading.style.transform = 'translateX(0)';
+      }
+    }
+    // Custom Scrollbar-Logik:
+    const page2 = document.getElementById('page2');
+    const thumb = document.getElementById('customThumb');
+    const scrollbar = document.querySelector('.custom-scrollbar');
+    function updateThumb() {
+      const visibleHeight = page2.clientHeight;
+      const contentHeight = page2.scrollHeight;
+      const scrollTop = page2.scrollTop;
+      const thumbHeight = Math.max((visibleHeight / contentHeight) * scrollbar.clientHeight, 20);
+      thumb.style.height = thumbHeight + 'px';
+      const maxThumbTop = scrollbar.clientHeight - thumbHeight;
+      const thumbTop = (scrollTop / (contentHeight - visibleHeight)) * maxThumbTop;
+      thumb.style.top = thumbTop + 'px';
+    }
+    page2.addEventListener('scroll', updateThumb);
+    window.addEventListener('resize', updateThumb);
+    updateThumb();
+    
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let isDragging = false;
+    let startTranslate = 0;
+    let currentTranslate = 0;
+    let animationID = 0;
+    document.querySelector('.table-container').addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+      isDragging = true;
+      animationID = requestAnimationFrame(animation);
+    });
+    document.querySelector('.table-container').addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      const currentX = e.touches[0].clientX;
+      currentTranslate = currentX - touchStartX;
+    });
+    document.querySelector('.table-container').addEventListener('touchend', e => {
+      isDragging = false;
+      cancelAnimationFrame(animationID);
+      const movedBy = currentTranslate;
+      if (Math.abs(movedBy) > 100) {
+        changePage();
+      } else {
+        const currentPage = document.querySelector('.table-page.active');
+        currentPage.style.transform = 'translateX(0)';
+      }
+    });
+    function animation() {
+      if (!isDragging) return;
+      const currentPage = document.querySelector('.table-page.active');
+      currentPage.style.transform = `translateX(${currentTranslate}px)`;
+      requestAnimationFrame(animation);
+    }
+  </script>
+</body>
+</html>
