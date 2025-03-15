@@ -51,21 +51,22 @@
     /* Button-Container */
     .button-container {
       display: flex;
-      justify-content: space-around;
-      gap: 20px;
+      justify-content: center;
+      gap: 30px;
       margin-top: 20px;
     }
     .button-87-translation {
-      flex: 1;
       margin: 10px;
       padding: 15px 30px;
       text-align: center;
       text-transform: uppercase;
       transition: 0.5s;
-      background-size: 200%;
+      background-size: 200% auto;
       color: rgb(0, 0, 0);
       border-radius: 10px;
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: 0;
       font-weight: 700;
       background-image: linear-gradient(45deg, #ffffff 0%, #cccccc 51%, #ffffff 100%);
@@ -74,6 +75,8 @@
       position: relative;
       overflow: hidden;
       text-shadow: none;
+      min-width: 120px;
+      text-decoration: none;
     }
     .button-87-translation:hover {
       background-position: right center;
@@ -175,6 +178,9 @@
         <a href="katakana.html" class="button-87-translation" data-hover="カタカナ" role="button">
           <span class="btn-content">Katakana</span>
         </a>
+        <a href="hirakana.html" class="button-87-translation" data-hover="ひらがな/カタカナ" role="button">
+          <span class="btn-content">Hira/Kata</span>
+        </a>
         <a href="firstgradekanji.html" class="button-87-translation" data-hover="小学一年生の漢字" role="button">
           <span class="btn-content">1st grade K</span>
         </a>
@@ -248,7 +254,7 @@
           <td>ALT + 0332</td>
         </tr>
       </table>
-      <p><strong>So geht’s:</strong><br>
+      <p><strong>So geht's:</strong><br>
       - Halte die <strong>ALT-Taste</strong> gedrückt.<br>
       - Tippe den entsprechenden Code auf dem Nummernblock ein.<br>
       - Lasse die <strong>ALT-Taste</strong> los.</p>
