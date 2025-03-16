@@ -344,10 +344,17 @@
       }, 1000);
     }
 
-    // Ändern: Wähle zufällig ein Zeichen aus der gesamten, unveränderten Liste.
+    // Wähle zufällig ein Zeichen aus der Liste, entferne es und beende das Quiz, wenn keine Zeichen mehr übrig sind.
     function nextQuestion() {
+      if (kanaList.length === 0) {
+        document.getElementById("message").textContent = "Quiz beendet! Alle Kana wurden abgefragt.";
+        document.getElementById("answer").disabled = true;
+        document.getElementById("checkButton").disabled = true;
+        document.getElementById("restart").style.display = "block";
+        return;
+      }
       const randomIndex = Math.floor(Math.random() * kanaList.length);
-      currentKana = kanaList[randomIndex];
+      currentKana = kanaList.splice(randomIndex, 1)[0];
       document.getElementById("hiragana").textContent = currentKana;
       document.getElementById("answer").value = "";
       document.getElementById("message").textContent = "";
