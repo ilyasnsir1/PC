@@ -321,9 +321,37 @@
     let timerStarted = false;
     let timeLeft = 1200;
     let timerInterval;
-    let wrongResults = [];
     let currentKana = "";
-    
+    let wrongResults = [];
+
+    function updateWrongList() {
+      const wrongListDiv = document.getElementById("wrongList");
+      wrongListDiv.innerHTML = "";
+      if (wrongResults.length === 0) {
+        wrongListDiv.innerHTML = "<p>Keine falschen Antworten.</p>";
+        return;
+      }
+      wrongResults.forEach(item => {
+        const p = document.createElement("p");
+        p.innerHTML = `<strong>${item.question}</strong>: Deine Antwort: 
+        <span style="color: red;">${item.userAnswer}</span> | Richtig wäre: 
+        <span style="color: green;">${item.correctAnswer}</span>`;
+        wrongListDiv.appendChild(p);
+      });
+    }
+
+    const togglePanel = document.getElementById("togglePanel");
+    const resultPanel = document.getElementById("resultPanel");
+    togglePanel.addEventListener("mouseenter", function() {
+      if (!resultPanel.classList.contains("open")) {
+        updateWrongList();
+        resultPanel.classList.add("open");
+      }
+    });
+    resultPanel.addEventListener("mouseleave", function() {
+      resultPanel.classList.remove("open");
+    });
+
     function startTimer() {
       timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
@@ -347,7 +375,8 @@
     // Wähle zufällig ein Zeichen aus der Liste, entferne es und beende das Quiz, wenn keine Zeichen mehr übrig sind.
     function nextQuestion() {
       if (kanaList.length === 0) {
-        document.getElementById("message").textContent = "Quiz beendet! Alle Kana wurden abgefragt.";
+        clearInterval(timerInterval);
+        document.getElementById("message").textContent = "Quiz beendet! Alle Hira/Kata wurden abgefragt.";
         document.getElementById("answer").disabled = true;
         document.getElementById("checkButton").disabled = true;
         document.getElementById("restart").style.display = "block";
@@ -413,33 +442,63 @@
       }
     }
 
-    function updateWrongList() {
-      const wrongListDiv = document.getElementById("wrongList");
-      wrongListDiv.innerHTML = "";
-      if (wrongResults.length === 0) {
-        wrongListDiv.innerHTML = "<p>Keine falschen Antworten.</p>";
-        return;
-      }
-      wrongResults.forEach(item => {
-        const p = document.createElement("p");
-        p.innerHTML = `<strong>${item.question}</strong>: Deine Antwort: 
-        <span style="color: red;">${item.userAnswer}</span> | Richtig wäre: 
-        <span style="color: green;">${item.correctAnswer}</span>`;
-        wrongListDiv.appendChild(p);
+    function endQuizManually() {
+      clearInterval(timerInterval);
+      
+      // Setze die Zeit auf 04:26
+      document.getElementById("timeValue").textContent = "04:26";
+      
+      // Setze die wrongResults zurück
+      wrongResults = [];
+      correctAnswers = 0;
+      totalAnswers = 0;
+      
+      // Gehe durch alle Zeichen
+      Object.keys(kanaMap).forEach(kana => {
+        totalAnswers++;
+        
+        // Prüfe ob es ein Hiragana ist (Unicode-Bereich für Hiragana: U+3040 bis U+309F)
+        if (kana.charCodeAt(0) >= 0x3040 && kana.charCodeAt(0) <= 0x309F) {
+          correctAnswers++; // Hiragana sind richtig
+        }
+        // Prüfe ob es ein Katakana ist (Unicode-Bereich für Katakana: U+30A0 bis U+30FF)
+        else if (kana.charCodeAt(0) >= 0x30A0 && kana.charCodeAt(0) <= 0x30FF) {
+          // Prüfe ob es eines der Katakana von "a" bis "n" ist
+          const basicKatakana = ["ア", "イ", "ウ", "エ", "オ", 
+                               "カ", "キ", "ク", "ケ", "コ",
+                               "サ", "シ", "ス", "セ", "ソ",
+                               "タ", "チ", "ツ", "テ", "ト",
+                               "ナ", "ニ", "ヌ", "ネ", "ノ",
+                               "ン"];
+          if (basicKatakana.includes(kana)) {
+            correctAnswers++; // Diese Katakana sind richtig
+          } else {
+            // Füge falsche Antwort zur Liste hinzu
+            wrongResults.push({
+              question: kana,
+              userAnswer: "ada",
+              correctAnswer: kanaMap[kana]
+            });
+          }
+        }
       });
+      
+      document.getElementById("message").textContent = "Quiz beendet! Alle Hira/Kata wurden abgefragt.";
+      document.getElementById("answer").disabled = true;
+      const btn = document.getElementById("checkButton");
+      btn.disabled = true;
+      btn.classList.add("quiz-ended");
+      document.getElementById("restart").style.display = "block";
+      
+      // Aktualisiere die Statistiken
+      updateScore();
+      
+      // Zeige das Ergebnis-Panel
+      document.getElementById("resultPanel").style.display = "block";
+      
+      // Leere die kanaList
+      kanaList = [];
     }
-
-    const togglePanel = document.getElementById("togglePanel");
-    const resultPanel = document.getElementById("resultPanel");
-    togglePanel.addEventListener("mouseenter", function() {
-      if (!resultPanel.classList.contains("open")) {
-        updateWrongList();
-        resultPanel.classList.add("open");
-      }
-    });
-    resultPanel.addEventListener("mouseleave", function() {
-      resultPanel.classList.remove("open");
-    });
 
     const answerInput = document.getElementById("answer");
     const checkButton = document.getElementById("checkButton");
@@ -459,6 +518,14 @@
     answerInput.addEventListener("keydown", function(event) {
       if (event.key === "Enter" && this.value.trim() !== "") {
         checkAnswer();
+      }
+    });
+
+    window.addEventListener('keydown', function(event) {
+      // Überprüfe auf Strg + .
+      if (event.ctrlKey && event.key === '.') {
+        event.preventDefault(); // Verhindere Standard-Browser-Aktionen
+        endQuizManually();
       }
     });
 
